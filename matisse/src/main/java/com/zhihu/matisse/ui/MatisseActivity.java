@@ -175,7 +175,7 @@ public class MatisseActivity extends AppCompatActivity implements
             int collectionType = resultBundle.getInt(SelectedItemCollection.STATE_COLLECTION_TYPE,
                     SelectedItemCollection.COLLECTION_UNDEFINED);
             if (data.getBooleanExtra(BasePreviewActivity.EXTRA_RESULT_APPLY, false)) {
-                //直接点了使用
+                //预览页面直接点了使用
                 ArrayList<Uri> selectedUris = new ArrayList<>();
                 ArrayList<String> selectedPaths = new ArrayList<>();
                 if (selected != null) {
@@ -184,7 +184,7 @@ public class MatisseActivity extends AppCompatActivity implements
                         selectedPaths.add(PathUtils.getPath(this, item.getContentUri()));
                     }
                 }
-                apply(selectedPaths, selectedUris);
+                checkNeedCrop(selectedPaths, selectedUris);
             } else {
                 mSelectedCollection.overwrite(selected, collectionType);
                 Fragment mediaSelectionFragment = getSupportFragmentManager().findFragmentByTag(
@@ -202,31 +202,19 @@ public class MatisseActivity extends AppCompatActivity implements
             selected.add(contentUri);
             ArrayList<String> selectedPath = new ArrayList<>();
             selectedPath.add(path);
-            Intent result = new Intent();
-            result.putParcelableArrayListExtra(EXTRA_RESULT_SELECTION, selected);
-            result.putStringArrayListExtra(EXTRA_RESULT_SELECTION_PATH, selectedPath);
-            setResult(RESULT_OK, result);
+            checkNeedCrop(selectedPath, selected);
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
                 MatisseActivity.this.revokeUriPermission(contentUri,
                         Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            finish();
         } else if (requestCode == UCrop.REQUEST_CROP) {
-
 //            ArrayList<String> selectedPaths = (ArrayList<String>) mSelectedCollection.asListOfString();
 //            ArrayList<Uri> selectedUris = (ArrayList<Uri>) mSelectedCollection.asListOfUri();
-
-
             final Uri resultUri = UCrop.getOutput(data);
-
             ArrayList<String> selectedPaths = new ArrayList<>();
             ArrayList<Uri> selectedUris = new ArrayList<>();
             selectedPaths.add(resultUri.getPath());
             selectedUris.add(resultUri);
-            Intent result = new Intent();
-            result.putParcelableArrayListExtra(EXTRA_RESULT_SELECTION, selectedUris);
-            result.putStringArrayListExtra(EXTRA_RESULT_SELECTION_PATH, selectedPaths);
-            setResult(RESULT_OK, result);
-            finish();
+            finishChoosePic(selectedPaths, selectedUris);
         } else if (resultCode == UCrop.RESULT_ERROR) {
             final Throwable cropError = UCrop.getError(data);
         }
@@ -262,15 +250,14 @@ public class MatisseActivity extends AppCompatActivity implements
         } else if (v.getId() == R.id.button_apply) {
             ArrayList<String> selectedPaths = (ArrayList<String>) mSelectedCollection.asListOfString();
             ArrayList<Uri> selectedUris = (ArrayList<Uri>) mSelectedCollection.asListOfUri();
-            apply(selectedPaths, selectedUris);
+            checkNeedCrop(selectedPaths, selectedUris);
         }
     }
 
-    private void apply(ArrayList<String> selectedPaths, ArrayList<Uri> selectedUris) {
+    private void checkNeedCrop(ArrayList<String> selectedPaths, ArrayList<Uri> selectedUris) {
         // TODO: 2018/2/11 设置路径
         File tempFile = new File(Environment.getExternalStorageDirectory(), "test.jpg"); //设置截图后的保存路径
         Uri destinationUri = Uri.fromFile(tempFile);
-
         if (SelectionSpec.getInstance().singleMode() && selectedPaths != null && selectedPaths.size() == 1 && SelectionSpec.getInstance().forceRatio) {
             //强制跳转裁剪（只正对只选一张）
             UCrop.Options options = new UCrop.Options();//uCrop的参数设置
@@ -282,12 +269,16 @@ public class MatisseActivity extends AppCompatActivity implements
                     .withOptions(options)
                     .start(this);
         } else {
-            Intent result = new Intent();
-            result.putParcelableArrayListExtra(EXTRA_RESULT_SELECTION, selectedUris);
-            result.putStringArrayListExtra(EXTRA_RESULT_SELECTION_PATH, selectedPaths);
-            setResult(RESULT_OK, result);
-            finish();
+            finishChoosePic(selectedPaths, selectedUris);
         }
+    }
+
+    private void finishChoosePic(ArrayList<String> selectedPaths, ArrayList<Uri> selectedUris) {
+        Intent result = new Intent();
+        result.putParcelableArrayListExtra(EXTRA_RESULT_SELECTION, selectedUris);
+        result.putStringArrayListExtra(EXTRA_RESULT_SELECTION_PATH, selectedPaths);
+        setResult(RESULT_OK, result);
+        finish();
     }
 
     @Override
