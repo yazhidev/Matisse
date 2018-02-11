@@ -17,7 +17,9 @@ package com.zhihu.matisse.internal.ui;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -25,6 +27,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.yalantis.ucrop.UCrop;
 import com.zhihu.matisse.R;
 import com.zhihu.matisse.internal.entity.IncapableCause;
 import com.zhihu.matisse.internal.entity.Item;
@@ -34,6 +37,8 @@ import com.zhihu.matisse.internal.ui.adapter.PreviewPagerAdapter;
 import com.zhihu.matisse.internal.ui.widget.CheckView;
 import com.zhihu.matisse.internal.utils.PhotoMetadataUtils;
 import com.zhihu.matisse.internal.utils.Platform;
+
+import java.io.File;
 
 public abstract class BasePreviewActivity extends AppCompatActivity implements View.OnClickListener,
         ViewPager.OnPageChangeListener {
@@ -50,6 +55,7 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
 
     protected CheckView mCheckView;
     protected TextView mButtonBack;
+    protected TextView mButtonEdit;
     protected TextView mButtonApply;
     protected TextView mSize;
 
@@ -76,9 +82,14 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
         }
 
         mButtonBack = (TextView) findViewById(R.id.button_back);
+        mButtonEdit = (TextView) findViewById(R.id.button_edit);
+        if(SelectionSpec.getInstance().forceRatio) {
+            mButtonEdit.setVisibility(View.GONE);
+        }
         mButtonApply = (TextView) findViewById(R.id.button_apply);
         mSize = (TextView) findViewById(R.id.size);
         mButtonBack.setOnClickListener(this);
+        mButtonEdit.setOnClickListener(this);
         mButtonApply.setOnClickListener(this);
 
         mPager = (ViewPager) findViewById(R.id.pager);
@@ -101,6 +112,9 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
                         mCheckView.setChecked(false);
                     }
                 } else {
+                    if(SelectionSpec.getInstance().singleMode() && mSelectedCollection.count() == 1) {
+                        mSelectedCollection.clear();
+                    }
                     if (assertAddSelection(item)) {
                         mSelectedCollection.add(item);
                         if (mSpec.countable) {
@@ -135,6 +149,16 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
         } else if (v.getId() == R.id.button_apply) {
             sendBackResult(true);
             finish();
+        } else if(v.getId() == R.id.button_edit) {
+            //编辑图片
+            // TODO: 2018/2/11 编辑后替换原来图片
+            // TODO: 2018/2/11 checkView单选模式
+            Item item = mAdapter.getMediaItem(mPager.getCurrentItem());
+            File tempFile = new File(Environment.getExternalStorageDirectory(), "test.jpg"); //设置截图后的保存路径
+            Uri destinationUri = Uri.fromFile(tempFile);
+            UCrop.of(item.getContentUri(), destinationUri)
+                    .withAspectRatio(1, 1)
+                    .start(this);
         }
     }
 
@@ -187,7 +211,11 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
             mButtonApply.setEnabled(true);
         } else {
             mButtonApply.setEnabled(true);
-            mButtonApply.setText(getString(R.string.button_apply, selectedCount));
+            if(SelectionSpec.getInstance().singleMode()) {
+                mButtonApply.setText(getString(R.string.button_apply_default));
+            } else {
+                mButtonApply.setText(getString(R.string.button_apply, selectedCount));
+            }
         }
     }
 

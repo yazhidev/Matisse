@@ -33,6 +33,7 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import com.zhihu.matisse.R;
+import com.zhihu.matisse.internal.entity.SelectionSpec;
 
 public class CheckView extends View {
 
@@ -146,11 +147,13 @@ public class CheckView extends View {
                 initBackgroundPaint();
                 canvas.drawCircle((float) SIZE * mDensity / 2, (float) SIZE * mDensity / 2,
                         BG_RADIUS * mDensity, mBackgroundPaint);
-                initTextPaint();
-                String text = String.valueOf(mCheckedNum);
-                int baseX = (int) (canvas.getWidth() - mTextPaint.measureText(text)) / 2;
-                int baseY = (int) (canvas.getHeight() - mTextPaint.descent() - mTextPaint.ascent()) / 2;
-                canvas.drawText(text, baseX, baseY, mTextPaint);
+                if(!SelectionSpec.getInstance().singleMode()) {
+                    initTextPaint();
+                    String text = String.valueOf(mCheckedNum);
+                    int baseX = (int) (canvas.getWidth() - mTextPaint.measureText(text)) / 2;
+                    int baseY = (int) (canvas.getHeight() - mTextPaint.descent() - mTextPaint.ascent()) / 2;
+                    canvas.drawText(text, baseX, baseY, mTextPaint);
+                }
             }
         } else {
             if (mChecked) {

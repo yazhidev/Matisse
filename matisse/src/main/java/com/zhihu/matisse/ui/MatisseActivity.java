@@ -24,10 +24,12 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -36,6 +38,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.TextView;
 
+import com.yalantis.ucrop.UCrop;
 import com.zhihu.matisse.R;
 import com.zhihu.matisse.internal.entity.Album;
 import com.zhihu.matisse.internal.entity.Item;
@@ -52,6 +55,7 @@ import com.zhihu.matisse.internal.ui.widget.AlbumsSpinner;
 import com.zhihu.matisse.internal.utils.MediaStoreCompat;
 import com.zhihu.matisse.internal.utils.PathUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -165,14 +169,13 @@ public class MatisseActivity extends AppCompatActivity implements
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != RESULT_OK)
             return;
-
         if (requestCode == REQUEST_CODE_PREVIEW) {
             Bundle resultBundle = data.getBundleExtra(BasePreviewActivity.EXTRA_RESULT_BUNDLE);
             ArrayList<Item> selected = resultBundle.getParcelableArrayList(SelectedItemCollection.STATE_SELECTION);
             int collectionType = resultBundle.getInt(SelectedItemCollection.STATE_COLLECTION_TYPE,
                     SelectedItemCollection.COLLECTION_UNDEFINED);
             if (data.getBooleanExtra(BasePreviewActivity.EXTRA_RESULT_APPLY, false)) {
-                Intent result = new Intent();
+                //直接点了使用
                 ArrayList<Uri> selectedUris = new ArrayList<>();
                 ArrayList<String> selectedPaths = new ArrayList<>();
                 if (selected != null) {
@@ -181,10 +184,7 @@ public class MatisseActivity extends AppCompatActivity implements
                         selectedPaths.add(PathUtils.getPath(this, item.getContentUri()));
                     }
                 }
-                result.putParcelableArrayListExtra(EXTRA_RESULT_SELECTION, selectedUris);
-                result.putStringArrayListExtra(EXTRA_RESULT_SELECTION_PATH, selectedPaths);
-                setResult(RESULT_OK, result);
-                finish();
+                apply(selectedPaths, selectedUris);
             } else {
                 mSelectedCollection.overwrite(selected, collectionType);
                 Fragment mediaSelectionFragment = getSupportFragmentManager().findFragmentByTag(
@@ -210,6 +210,25 @@ public class MatisseActivity extends AppCompatActivity implements
                 MatisseActivity.this.revokeUriPermission(contentUri,
                         Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
             finish();
+        } else if (requestCode == UCrop.REQUEST_CROP) {
+
+//            ArrayList<String> selectedPaths = (ArrayList<String>) mSelectedCollection.asListOfString();
+//            ArrayList<Uri> selectedUris = (ArrayList<Uri>) mSelectedCollection.asListOfUri();
+
+
+            final Uri resultUri = UCrop.getOutput(data);
+
+            ArrayList<String> selectedPaths = new ArrayList<>();
+            ArrayList<Uri> selectedUris = new ArrayList<>();
+            selectedPaths.add(resultUri.getPath());
+            selectedUris.add(resultUri);
+            Intent result = new Intent();
+            result.putParcelableArrayListExtra(EXTRA_RESULT_SELECTION, selectedUris);
+            result.putStringArrayListExtra(EXTRA_RESULT_SELECTION_PATH, selectedPaths);
+            setResult(RESULT_OK, result);
+            finish();
+        } else if (resultCode == UCrop.RESULT_ERROR) {
+            final Throwable cropError = UCrop.getError(data);
         }
     }
 
@@ -226,7 +245,11 @@ public class MatisseActivity extends AppCompatActivity implements
         } else {
             mButtonPreview.setEnabled(true);
             mButtonApply.setEnabled(true);
-            mButtonApply.setText(getString(R.string.button_apply, selectedCount));
+            if (SelectionSpec.getInstance().singleMode()) {
+                mButtonApply.setText(getString(R.string.button_apply_default));
+            } else {
+                mButtonApply.setText(getString(R.string.button_apply, selectedCount));
+            }
         }
     }
 
@@ -237,10 +260,30 @@ public class MatisseActivity extends AppCompatActivity implements
             intent.putExtra(BasePreviewActivity.EXTRA_DEFAULT_BUNDLE, mSelectedCollection.getDataWithBundle());
             startActivityForResult(intent, REQUEST_CODE_PREVIEW);
         } else if (v.getId() == R.id.button_apply) {
-            Intent result = new Intent();
-            ArrayList<Uri> selectedUris = (ArrayList<Uri>) mSelectedCollection.asListOfUri();
-            result.putParcelableArrayListExtra(EXTRA_RESULT_SELECTION, selectedUris);
             ArrayList<String> selectedPaths = (ArrayList<String>) mSelectedCollection.asListOfString();
+            ArrayList<Uri> selectedUris = (ArrayList<Uri>) mSelectedCollection.asListOfUri();
+            apply(selectedPaths, selectedUris);
+        }
+    }
+
+    private void apply(ArrayList<String> selectedPaths, ArrayList<Uri> selectedUris) {
+        // TODO: 2018/2/11 设置路径
+        File tempFile = new File(Environment.getExternalStorageDirectory(), "test.jpg"); //设置截图后的保存路径
+        Uri destinationUri = Uri.fromFile(tempFile);
+
+        if (SelectionSpec.getInstance().singleMode() && selectedPaths != null && selectedPaths.size() == 1 && SelectionSpec.getInstance().forceRatio) {
+            //强制跳转裁剪（只正对只选一张）
+            UCrop.Options options = new UCrop.Options();//uCrop的参数设置
+//            options.setAllowedGestures(UCropActivity.SCALE, UCropActivity.SCALE, UCropActivity.SCALE);
+            options.setToolbarColor(ContextCompat.getColor(this, R.color.zhihu_primary));
+            options.setStatusBarColor(ContextCompat.getColor(this, R.color.zhihu_primary_dark));
+            UCrop.of(selectedUris.get(0), destinationUri)
+                    .withAspectRatio(SelectionSpec.getInstance().ratioX, SelectionSpec.getInstance().ratioY)
+                    .withOptions(options)
+                    .start(this);
+        } else {
+            Intent result = new Intent();
+            result.putParcelableArrayListExtra(EXTRA_RESULT_SELECTION, selectedUris);
             result.putStringArrayListExtra(EXTRA_RESULT_SELECTION_PATH, selectedPaths);
             setResult(RESULT_OK, result);
             finish();

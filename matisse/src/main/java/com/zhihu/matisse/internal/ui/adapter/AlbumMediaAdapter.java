@@ -168,6 +168,9 @@ public class AlbumMediaAdapter extends
     public void onCheckViewClicked(CheckView checkView, Item item, RecyclerView.ViewHolder holder) {
         if (mSelectionSpec.countable) {
             int checkedNum = mSelectedCollection.checkedNumOf(item);
+            if(SelectionSpec.getInstance().singleMode() && mSelectedCollection.count() == 1) {
+                mSelectedCollection.clear();
+            }
             if (checkedNum == CheckView.UNCHECKED) {
                 if (assertAddSelection(holder.itemView.getContext(), item)) {
                     mSelectedCollection.add(item);

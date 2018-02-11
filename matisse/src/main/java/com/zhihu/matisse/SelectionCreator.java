@@ -302,4 +302,15 @@ public final class SelectionCreator {
         }
     }
 
+    /**
+     * 是否设置强制裁剪成某个比例
+     * @param x
+     * @param y
+     */
+    public SelectionCreator setForceRatio(int x, int y) {
+        mSelectionSpec.forceRatio = true;
+        mSelectionSpec.ratioX = x;
+        mSelectionSpec.ratioY = y;
+        return this;
+    }
 }

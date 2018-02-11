@@ -47,6 +47,9 @@ public final class SelectionSpec {
     public int gridExpectedSize;
     public float thumbnailScale;
     public ImageEngine imageEngine;
+    public boolean forceRatio; //是否强制裁剪成某比例
+    public int ratioX;
+    public int ratioY;
 
     private SelectionSpec() {
     }
@@ -98,5 +101,13 @@ public final class SelectionSpec {
 
     private static final class InstanceHolder {
         private static final SelectionSpec INSTANCE = new SelectionSpec();
+    }
+
+    /**
+     * 单选模式
+     * @return
+     */
+    public boolean singleMode() {
+        return maxSelectable == 1;
     }
 }

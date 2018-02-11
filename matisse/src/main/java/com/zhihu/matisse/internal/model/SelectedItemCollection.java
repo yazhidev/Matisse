@@ -172,9 +172,8 @@ public class SelectedItemCollection {
             String cause;
 
             try {
-                cause = mContext.getResources().getQuantityString(
-                        R.plurals.error_over_count,
-                        maxSelectable,
+                cause = mContext.getString(
+                        R.string.error_over_count,
                         maxSelectable
                 );
             } catch (Resources.NotFoundException e) {
@@ -193,7 +192,8 @@ public class SelectedItemCollection {
     }
 
     public boolean maxSelectableReached() {
-        return mItems.size() == currentMaxSelectable();
+        //单选模式下，选中一个取消另一个，所以都是可选状态
+        return mItems.size() == currentMaxSelectable() && !SelectionSpec.getInstance().singleMode();
     }
 
     // depends
@@ -247,5 +247,10 @@ public class SelectedItemCollection {
     public int checkedNumOf(Item item) {
         int index = new ArrayList<>(mItems).indexOf(item);
         return index == -1 ? CheckView.UNCHECKED : index + 1;
+    }
+
+    public void clear() {
+        mCollectionType = COLLECTION_UNDEFINED;
+        mItems.clear();
     }
 }

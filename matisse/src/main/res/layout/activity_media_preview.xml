@@ -35,7 +35,7 @@
         tools:targetApi="lollipop">
 
         <TextView
-            android:id="@+id/button_back"
+            android:id="@+id/button_edit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:foreground="?selectableItemBackground"
@@ -67,16 +67,30 @@
     </FrameLayout>
 
     <FrameLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:layout_margin="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         android:fitsSystemWindows="true">
+
+        <TextView
+            android:id="@+id/button_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:foreground="?selectableItemBackground"
+            android:padding="16dp"
+            android:layout_gravity="start"
+            android:text="@string/button_back"
+            android:textColor="?attr/preview.bottomToolbar.back.textColor"
+            android:textSize="16sp"/>
 
         <com.zhihu.matisse.internal.ui.widget.CheckView
             android:id="@+id/check_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="end"
             android:padding="10dp"/>
     </FrameLayout>
 
