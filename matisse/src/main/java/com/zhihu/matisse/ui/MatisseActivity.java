@@ -40,6 +40,7 @@ import android.widget.TextView;
 
 import com.yalantis.ucrop.UCrop;
 import com.zhihu.matisse.R;
+import com.zhihu.matisse.SelectionCreator;
 import com.zhihu.matisse.internal.entity.Album;
 import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.entity.SelectionSpec;
@@ -57,6 +58,7 @@ import com.zhihu.matisse.internal.utils.PathUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * Main Activity to display albums and media content (images/videos) in each album
@@ -255,8 +257,16 @@ public class MatisseActivity extends AppCompatActivity implements
     }
 
     private void checkNeedCrop(ArrayList<String> selectedPaths, ArrayList<Uri> selectedUris) {
-        // TODO: 2018/2/11 设置路径
-        File tempFile = new File(Environment.getExternalStorageDirectory(), "test.jpg"); //设置截图后的保存路径
+        String fileName = selectedPaths.get(0);
+        String substring = ".jpg";
+        if (fileName.contains(".")) {
+            substring = fileName.substring(fileName.lastIndexOf("."), fileName.length());
+        }
+        File file = new File(SelectionSpec.getInstance().savePath);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+        File tempFile = new File(file, new Date().getTime() + substring); //设置截图后的保存路径
         Uri destinationUri = Uri.fromFile(tempFile);
         if (SelectionSpec.getInstance().singleMode() && selectedPaths != null && selectedPaths.size() == 1 && SelectionSpec.getInstance().forceRatio) {
             //强制跳转裁剪（只正对只选一张）

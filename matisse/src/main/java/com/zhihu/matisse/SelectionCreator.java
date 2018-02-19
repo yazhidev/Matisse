@@ -307,10 +307,16 @@ public final class SelectionCreator {
      * @param x
      * @param y
      */
-    public SelectionCreator setForceRatio(int x, int y) {
+    public SelectionCreator setForceRatio(int x, int y, String savePath) {
         mSelectionSpec.forceRatio = true;
         mSelectionSpec.ratioX = x;
         mSelectionSpec.ratioY = y;
+        mSelectionSpec.savePath = savePath;
+        return this;
+    }
+
+    public SelectionCreator compress(boolean compress) {
+        mSelectionSpec.compress = compress;
         return this;
     }
 }

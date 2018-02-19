@@ -50,6 +50,8 @@ public final class SelectionSpec {
     public boolean forceRatio; //是否强制裁剪成某比例
     public int ratioX;
     public int ratioY;
+    public boolean compress; //是否压缩图片
+    public String savePath;
 
     private SelectionSpec() {
     }
