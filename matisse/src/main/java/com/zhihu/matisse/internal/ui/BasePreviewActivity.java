@@ -147,6 +147,16 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
         if (v.getId() == R.id.button_back) {
             onBackPressed();
         } else if (v.getId() == R.id.button_apply) {
+            //修复问题：选中图A，滑到图B，点击使用，裁剪的是图A
+            Item item = mAdapter.getMediaItem(mPager.getCurrentItem());
+            if (!mSelectedCollection.isSelected(item)) {
+                if(SelectionSpec.getInstance().singleMode() && mSelectedCollection.count() == 1) {
+                    mSelectedCollection.clear();
+                }
+                if (assertAddSelection(item)) {
+                    mSelectedCollection.add(item);
+                }
+            }
             sendBackResult(true);
             finish();
         } else if(v.getId() == R.id.button_edit) {
