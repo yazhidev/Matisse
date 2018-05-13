@@ -83,6 +83,12 @@ public final class SelectionSpec {
         gridExpectedSize = 0;
         thumbnailScale = 0.5f;
         imageEngine = new GlideEngine();
+
+        forceRatio = false;
+        ratioX = 0;
+        ratioX = 0;
+        compress = false;
+        savePath = null;
     }
 
     public boolean singleSelectionModeEnabled() {
@@ -112,4 +118,5 @@ public final class SelectionSpec {
     public boolean singleMode() {
         return maxSelectable == 1;
     }
+
 }

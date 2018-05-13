@@ -257,18 +257,18 @@ public class MatisseActivity extends AppCompatActivity implements
     }
 
     private void checkNeedCrop(ArrayList<String> selectedPaths, ArrayList<Uri> selectedUris) {
-        String fileName = selectedPaths.get(0);
-        String substring = ".jpg";
-        if (fileName.contains(".")) {
-            substring = fileName.substring(fileName.lastIndexOf("."), fileName.length());
-        }
-        File file = new File(SelectionSpec.getInstance().savePath);
-        if (!file.exists()) {
-            file.mkdirs();
-        }
-        File tempFile = new File(file, new Date().getTime() + substring); //设置截图后的保存路径
-        Uri destinationUri = Uri.fromFile(tempFile);
         if (SelectionSpec.getInstance().singleMode() && selectedPaths != null && selectedPaths.size() == 1 && SelectionSpec.getInstance().forceRatio) {
+            String fileName = selectedPaths.get(0);
+            String substring = ".jpg";
+            if (fileName.contains(".")) {
+                substring = fileName.substring(fileName.lastIndexOf("."), fileName.length());
+            }
+            File file = new File(SelectionSpec.getInstance().savePath);
+            if (!file.exists()) {
+                file.mkdirs();
+            }
+            File tempFile = new File(file, new Date().getTime() + substring); //设置截图后的保存路径
+            Uri destinationUri = Uri.fromFile(tempFile);
             //强制跳转裁剪（只正对只选一张）
             UCrop.Options options = new UCrop.Options();//uCrop的参数设置
 //            options.setAllowedGestures(UCropActivity.SCALE, UCropActivity.SCALE, UCropActivity.SCALE);
