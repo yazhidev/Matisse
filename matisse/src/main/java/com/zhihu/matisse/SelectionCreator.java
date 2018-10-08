@@ -314,6 +314,7 @@ public final class SelectionCreator {
         mSelectionSpec.savePath = savePath;
         return this;
     }
+
     public SelectionCreator compress(boolean compress) {
         mSelectionSpec.compress = compress;
         return this;
